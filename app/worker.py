@@ -24,6 +24,7 @@ class DownloadWorker(QtCore.QThread):
         self._stop = False
 
     def build_command(self, config):
+        # Base de la commande avec template de progression personnalisé
         args = [
             "yt-dlp",
             "--newline",
@@ -32,12 +33,29 @@ class DownloadWorker(QtCore.QThread):
             "--progress-template",
             "%(progress.status)s__SEP__%(progress._total_bytes_estimate_str)s__SEP__%(progress._percent_str)s__SEP__%(progress._speed_str)s__SEP__%(progress._eta_str)s__SEP__%(info.title)s",
         ]
+
+        general = config.get("general", {})
+
+        # 1. Gestion du délai (Rate Limit)
+        sleep = general.get("sleep_interval")
+        if sleep:
+            args += ["--sleep-interval", str(sleep)]
+
+        # 2. Gestion des Cookies (Vidéos privées / Restrictions)
+        browser = general.get("cookie_browser")
+        if browser:
+            args += ["--cookies-from-browser", browser]
+
+        # 3. Récupération des presets (incluant maintenant l'image pour le MP3)
         p_args = config["presets"][self.preset]
-        g_args = config["general"].get("global_args")
+        g_args = general.get("global_args")
 
         args += ["-P", self.path]
+
+        # On utilise shlex.split pour transformer la chaîne du TOML en liste d'arguments propre
         args += p_args if isinstance(p_args, list) else shlex.split(p_args)
         args += g_args if isinstance(g_args, list) else shlex.split(g_args)
+
         args += ["--", self.link]
         return args
 
@@ -53,12 +71,12 @@ class DownloadWorker(QtCore.QThread):
         self.progress.emit(self.item, [(TreeColumn.STATUS, "Processing")])
 
         with sp.Popen(
-            self.command,
-            stdout=sp.PIPE,
-            stderr=sp.STDOUT,
-            text=True,
-            universal_newlines=True,
-            creationflags=create_window,
+                self.command,
+                stdout=sp.PIPE,
+                stderr=sp.STDOUT,
+                text=True,
+                universal_newlines=True,
+                creationflags=create_window,
         ) as p:
             for line in p.stdout:
                 output += line
@@ -85,7 +103,8 @@ class DownloadWorker(QtCore.QThread):
                             (TreeColumn.STATUS, "Downloading"),
                         ],
                     )
-                elif line.startswith(("[Merger]", "[ExtractAudio]")):
+                elif line.startswith(("[Merger]", "[ExtractAudio]", "[ThumbnailsConvertor]")):
+                    # Ajout de ThumbnailsConvertor pour indiquer que l'image est en cours de traitement
                     self.progress.emit(self.item, [(TreeColumn.STATUS, "Converting")])
                 elif line.startswith("WARNING:"):
                     logger.warning(f"Download ({self.id}) {line}")
