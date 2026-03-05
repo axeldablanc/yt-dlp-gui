@@ -7,8 +7,8 @@ global_args = ""
 update_ytdlp = true
 
 # --- PARAMÈTRES DE SÉCURITÉ ---
-# Navigateur pour récupérer les cookies (évite les erreurs de vidéo privée/limite d'âge)
-cookie_browser = "firefox"
+# Navigateurs supportés : "brave", "chrome", "chromium", "edge", "firefox", "opera", "safari", "vivaldi"
+cookie_browser = ""
 # Délai en secondes entre chaque vidéo pour éviter le bannissement IP
 sleep_interval = 5
 
