@@ -16,5 +16,5 @@ sleep_interval = 5
 best = "-f bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b"
 mp4 = "-f bv*[vcodec^=avc]+ba[ext=m4a]/b"
 # Preset MP3 avec pochette d'album et métadonnées incluses
-mp3 = "--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --add-metadata"
+mp3 = "--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --add-metadata --no-abort-on-error"
 # wav = "--extract-audio --audio-format wav --audio-quality 0"
